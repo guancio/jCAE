@@ -34,6 +34,12 @@
 #include <BRepAlgo_Sewing.hxx>
 #define BRepBuilderAPI_Sewing BRepAlgo_Sewing
 #endif
+
+#include <BRepOffset_Mode.hxx>
+#include <BRepOffsetAPI_MakeOffsetShape.hxx>
+#include <BRepOffsetAPI_MakeOffset.hxx>
+#include <BRepOffsetAPI_MakePipeShell.hxx>
+#include <BRepBuilderAPI_TransitionMode.hxx>
 %}
 
 class BRepBuilderAPI_MakeShape
@@ -105,6 +111,8 @@ class BRepBuilderAPI_MakeEdge : public BRepBuilderAPI_MakeShape
     BRepBuilderAPI_MakeEdge(const gp_Circ& L,const Standard_Real p1,const Standard_Real p2);
     BRepBuilderAPI_MakeEdge(const gp_Circ& L,const gp_Pnt& P1,const gp_Pnt& P2);
     BRepBuilderAPI_MakeEdge(const gp_Circ& L,const TopoDS_Vertex& V1,const TopoDS_Vertex& V2);
+    BRepBuilderAPI_MakeEdge(const Handle_Geom_TrimmedCurve& L);
+
 	Standard_Boolean IsDone() const;
 	//const TopoDS_Edge& Edge() const;
 };
@@ -190,4 +198,47 @@ class BRepBuilderAPI_Sewing
 
 	Standard_Boolean IsModifiedSubShape(const TopoDS_Shape& shape) const;
 	TopoDS_Shape ModifiedSubShape(const TopoDS_Shape& shape) const;
+};
+
+
+enum BRepOffset_Mode { 
+ BRepOffset_Skin,
+BRepOffset_Pipe,
+BRepOffset_RectoVerso
+};
+
+class BRepOffsetAPI_MakeOffsetShape  : public BRepBuilderAPI_MakeShape {
+ public:
+  BRepOffsetAPI_MakeOffsetShape(const TopoDS_Shape& S,const Standard_Real Offset,const Standard_Real Tol,const BRepOffset_Mode Mode = BRepOffset_Skin,const Standard_Boolean Intersection = Standard_False,const Standard_Boolean SelfInter = Standard_False,const GeomAbs_JoinType Join = GeomAbs_Arc);
+  void Build() ;
+};
+
+class BRepOffsetAPI_MakeOffset  : public BRepBuilderAPI_MakeShape {
+ public:
+  BRepOffsetAPI_MakeOffset(const TopoDS_Wire& Spine,const GeomAbs_JoinType Join = GeomAbs_Arc);
+  void Perform(const Standard_Real Offset,const Standard_Real Alt = 0.0) ;
+  virtual  void Build() ;
+};
+
+
+class BRepPrimAPI_MakeSweep  : public BRepBuilderAPI_MakeShape {
+};
+
+enum BRepBuilderAPI_TransitionMode { 
+ BRepBuilderAPI_Transformed,
+BRepBuilderAPI_RightCorner,
+BRepBuilderAPI_RoundCorner
+};
+
+
+class BRepOffsetAPI_MakePipeShell  : public BRepPrimAPI_MakeSweep {
+ public:
+  BRepOffsetAPI_MakePipeShell(const TopoDS_Wire& Spine);
+  virtual  void Build() ;
+  Standard_Boolean MakeSolid() ;
+  void Add(const TopoDS_Shape& Profile,const Standard_Boolean WithContact = Standard_False,const Standard_Boolean WithCorrection = Standard_False) ;
+  void SetTransitionMode(const BRepBuilderAPI_TransitionMode Mode = BRepBuilderAPI_Transformed);
+  void SetMode(const gp_Ax2& Axe) ;
+  void SetMode(const Standard_Boolean IsFrenet = Standard_False) ;
+  Standard_Boolean SetMode(const TopoDS_Shape& SpineSupport) ;
 };

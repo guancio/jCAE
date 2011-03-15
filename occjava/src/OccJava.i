@@ -73,6 +73,8 @@
 // This one require Opencascade 6.2
 %include "ShapeUpgrade.i"
 
+%include "GC.i"
+
 %typemap(javacode) TopExp
 %{
 	public static TopoDS_Vertex[] vertices(TopoDS_Edge edge)
